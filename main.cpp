@@ -5,20 +5,9 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include "bx/math.h"
-
-#if __EMSCRIPTEN__
 #include <emscripten.h>
 #include "GLFW/glfw3.h"
-#else // Linux/X11
-#include <chrono>
-#include <algorithm>
 
-#include "GLFW/glfw3.h"
-#define GLFW_EXPOSE_NATIVE_X11
-#include "GLFW/glfw3native.h"
-#endif // __EMSCRIPTEN__
-
-//TODO: auto-detect screen dimensions
 const int screenWidth = 1280;
 const int screenHeight = 720;
 
@@ -91,15 +80,6 @@ std::vector<char> readFile(const std::string &filename)
     return buffer;
 }
 
-#ifndef __EMSCRIPTEN__
-// Linux/X11
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-#endif // __EMSCRIPTEN__
-
 void renderFrame() {
     const bx::Vec3 at = {0.0f, 0.0f,  0.0f};
     const bx::Vec3 eye = {0.0f, 0.0f, -5.0f};
@@ -135,13 +115,7 @@ int main(int argc, char **argv)
 
     bgfx::PlatformData platformData{};
 
-#ifdef __EMSCRIPTEN__
     platformData.nwh = (void*)"#canvas";
-#else // Linux/X11
-    glfwSetKeyCallback(window, key_callback);
-    platformData.nwh = (void*)uintptr_t(glfwGetX11Window(window));
-#endif // __EMSCRIPTEN__
-
     platformData.context = NULL;
     platformData.backBuffer = NULL;
     platformData.backBufferDS = NULL;
@@ -200,35 +174,5 @@ int main(int argc, char **argv)
     else {
         std::cout << "Shader program create success!" << std::endl;
     }
-
-#if __EMSCRIPTEN__
     emscripten_set_main_loop(renderFrame, 0, 0);
-#else // Linux/X11
-    while(!glfwWindowShouldClose(window)) {
-        auto frameStart = std::chrono::high_resolution_clock::now();
-        renderFrame();
-        // Wait until FRAME_DURATION has passed while handling events
-        double elapsedSeconds = 0.0;
-        do {
-            auto currentTime = std::chrono::high_resolution_clock::now();
-            elapsedSeconds = std::chrono::duration<double>(currentTime - frameStart).count();
-
-            glfwWaitEventsTimeout(std::max(0.01, FRAME_DURATION - elapsedSeconds));
-
-            currentTime = std::chrono::high_resolution_clock::now();
-            elapsedSeconds = std::chrono::duration<double>(currentTime - frameStart).count();
-        } while (elapsedSeconds < FRAME_DURATION);
-    }
-
-    bgfx::destroy(program);
-    bgfx::destroy(fragmentShader);
-    bgfx::destroy(vertexShader);
-    bgfx::destroy(ibh);
-    bgfx::destroy(vbh);
-    bgfx::shutdown();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-
-    return 0;
-#endif // __EMSCRIPTEN__
 }
