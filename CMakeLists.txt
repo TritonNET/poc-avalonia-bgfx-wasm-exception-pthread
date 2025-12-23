@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 
-# If the EMSDK environment variable is set, configure the toolchain file. this has to be done before the project() line below
+# If the EMSDK environment variable is set, configure the toolchain file.
 if(DEFINED ENV{EMSDK})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake" CACHE STRING "Emscripten toolchain file")
     message(STATUS "WebAssembly build enabled")
     message(STATUS "CMAKE_TOOLCHAIN_FILE='${CMAKE_TOOLCHAIN_FILE}'")
 else()
-    message(STATUS "WebAssembly build NOT enabled. EMSDK environment variable is not set. Falling back to native build. If you want to compile for WebAssembly, first `source emsdk_env.sh` in the emsdk directory and then do `mkdir buildwasm && cd buildwasm && emcmake cmake .. && emmake make`")
+    if(WIN32)
+        message(STATUS "Native Windows build enabled (NMake/MSVC).")
+    else()
+        message(STATUS "Native Linux/Unix build enabled.")
+    endif()
 endif()
 
 project(bgfx-glfw-wasm-3dcube-template-starting-point)
@@ -16,6 +20,7 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 set(BGFX_DIR ${CMAKE_SOURCE_DIR}/bgfx)
 
+# Native dependencies (Windows/Linux)
 if(NOT DEFINED ENV{EMSDK})
     find_package(glfw3 REQUIRED)
     find_package(OpenGL REQUIRED)
@@ -29,11 +34,13 @@ add_definitions(-DBX_CONFIG_DEBUG)
 
 add_executable(bgfx-glfw-wasm-3dcube-template-starting-point main.cpp)
 
+# Install shaders for all platforms
 file(INSTALL DESTINATION ${CMAKE_BINARY_DIR}
     TYPE FILE
     FILES ${BGFX_DIR}/examples/runtime/shaders/glsl/vs_cubes.bin
     ${BGFX_DIR}/examples/runtime/shaders/glsl/fs_cubes.bin)
 
+# --- WebAssembly Configuration ---
 if(DEFINED ENV{EMSDK})
     set(CMAKE_CXX_FLAGS "-s MIN_WEBGL_VERSION=2 \
         -s MAX_WEBGL_VERSION=2 \
@@ -66,9 +73,33 @@ if(DEFINED ENV{EMSDK})
     file(INSTALL DESTINATION ${CMAKE_BINARY_DIR}
         TYPE FILE
         FILES ${CMAKE_SOURCE_DIR}/index.html)
-else() # Native Linux/X11
-    target_link_libraries(bgfx-glfw-wasm-3dcube-template-starting-point
-        glfw
-        OpenGL::GL
-        ${BGFX_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so)
+
+# --- Native Configuration ---
+else()
+    if(WIN32)
+        # WINDOWS CONFIGURATION
+        # Assumes BGFX was built using the default genie vs2022 script
+        # If you used vs2019 or similar, change 'win64_vs2022' below.
+        set(BGFX_WIN_DIR ${BGFX_DIR}/.build/win64_vs2022/bin)
+
+        target_link_libraries(bgfx-glfw-wasm-3dcube-template-starting-point
+            glfw
+            OpenGL::GL
+            # Link static libs or import libs for Windows
+            ${BGFX_WIN_DIR}/bgfxDebug.lib
+            ${BGFX_WIN_DIR}/bimgDebug.lib
+            ${BGFX_WIN_DIR}/bxDebug.lib
+            # Required Windows System Libraries
+            kernel32 user32 gdi32 psapi)
+            
+        # Optional: If you are linking against DLLs, un-comment below to copy them
+        # file(COPY ${BGFX_WIN_DIR}/bgfxDebug.dll DESTINATION ${CMAKE_BINARY_DIR})
+        
+    else()
+        # LINUX CONFIGURATION
+        target_link_libraries(bgfx-glfw-wasm-3dcube-template-starting-point
+            glfw
+            OpenGL::GL
+            ${BGFX_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so)
+    endif()
 endif()
