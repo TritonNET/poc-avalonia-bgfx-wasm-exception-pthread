@@ -13,7 +13,7 @@ else()
     endif()
 endif()
 
-project(bgfx-glfw-wasm-3dcube-template-starting-point)
+project(bgfx-poc)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
@@ -32,7 +32,7 @@ include_directories(${CMAKE_SOURCE_DIR}/bimg/include)
 
 add_definitions(-DBX_CONFIG_DEBUG)
 
-add_executable(bgfx-glfw-wasm-3dcube-template-starting-point main.cpp)
+add_executable(bgfx-poc main.cpp)
 
 # Install shaders for all platforms
 file(INSTALL DESTINATION ${CMAKE_BINARY_DIR}
@@ -65,7 +65,7 @@ if(DEFINED ENV{EMSDK})
         -s ALLOW_MEMORY_GROWTH=1 \
         -s EXIT_RUNTIME=1")
 
-    target_link_libraries(bgfx-glfw-wasm-3dcube-template-starting-point
+    target_link_libraries(bgfx-poc
         ${BGFX_DIR}/.build/wasm/bin/bgfxDebug.bc
         ${BGFX_DIR}/.build/wasm/bin/bxDebug.bc
         ${BGFX_DIR}/.build/wasm/bin/bimgDebug.bc)
@@ -82,7 +82,7 @@ else()
         # If you used vs2019 or similar, change 'win64_vs2022' below.
         set(BGFX_WIN_DIR ${BGFX_DIR}/.build/win64_vs2022/bin)
 
-        target_link_libraries(bgfx-glfw-wasm-3dcube-template-starting-point
+        target_link_libraries(bgfx-poc
             glfw
             OpenGL::GL
             # Link static libs or import libs for Windows
@@ -97,7 +97,7 @@ else()
         
     else()
         # LINUX CONFIGURATION
-        target_link_libraries(bgfx-glfw-wasm-3dcube-template-starting-point
+        target_link_libraries(bgfx-poc
             glfw
             OpenGL::GL
             ${BGFX_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so)
