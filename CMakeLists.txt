@@ -28,8 +28,6 @@ file(INSTALL DESTINATION ${CMAKE_BINARY_DIR}
 
 set(CMAKE_CXX_FLAGS "-s MIN_WEBGL_VERSION=2 \
         -s MAX_WEBGL_VERSION=2 \
-        -s EXCEPTION_DEBUG \
-        -fexceptions \
         -pthread \
         --preload-file vs_cubes.bin \
         --preload-file fs_cubes.bin \
@@ -41,7 +39,7 @@ set(CMAKE_CXX_FLAGS "-s MIN_WEBGL_VERSION=2 \
         -s ASSERTIONS=1 \
         -w \
         -g4 \
-        -s DISABLE_EXCEPTION_CATCHING=0 \
+        -s DISABLE_EXCEPTION_CATCHING=1 \
         -Os \
         -s USE_GLFW=3 \
         --no-heap-copy \

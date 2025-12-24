@@ -60,20 +60,6 @@ set "LDFLAGS="
 
 popd
 
-echo [INFO] Patching BGFX Makefiles to enable exceptions...
-
-set "WASM_PROJECT_DIR=%BGFX_DIR%\.build\projects\gmake-wasm"
-if not exist "%WASM_PROJECT_DIR%" (
-    echo [ERROR] Project directory not found: %WASM_PROJECT_DIR%
-    exit /b 1
-)
-
-pushd "%WASM_PROJECT_DIR%"
-
-powershell -Command "Get-ChildItem -Path '*.make' -Recurse | ForEach-Object { (Get-Content $_) -replace '-fno-exceptions', '-fexceptions' | Set-Content $_ }"
-
-popd
-
 REM ============================================================
 REM Build project (WASM)
 REM ============================================================
