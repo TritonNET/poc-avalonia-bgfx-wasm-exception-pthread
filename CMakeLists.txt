@@ -30,6 +30,7 @@ set(CMAKE_CXX_FLAGS "-s MIN_WEBGL_VERSION=2 \
         -s MAX_WEBGL_VERSION=2 \
         -s EXCEPTION_DEBUG \
         -fexceptions \
+        -pthread \
         --preload-file vs_cubes.bin \
         --preload-file fs_cubes.bin \
         --bind \

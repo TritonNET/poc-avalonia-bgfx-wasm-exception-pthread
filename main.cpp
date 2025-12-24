@@ -7,6 +7,10 @@
 #include "bx/math.h"
 #include <emscripten.h>
 #include "GLFW/glfw3.h"
+#include <thread>    // Required for std::thread
+#include <chrono>    // Required for std::chrono::seconds
+#include <exception> // Required for std::exception
+#include <stdexcept> // Required for std::runtime_error
 
 const int screenWidth = 1280;
 const int screenHeight = 720;
@@ -102,6 +106,34 @@ void renderFrame() {
     counter++;
 }
 
+void threadLogic()
+{
+    int timeElapsed = 0;
+    while (true)
+    {
+        // Sleep for 3 seconds
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        timeElapsed += 3;
+
+        try
+        {
+            // Print sample text every 3 seconds
+            std::cout << "XXXXXXXXXX [Thread] Sample text (Time: " << timeElapsed << "s)" << std::endl;
+
+            // Every 6 seconds (which is every 2nd loop), throw an exception
+            if (timeElapsed % 6 == 0)
+            {
+                throw std::runtime_error("XXXXXXXXXX Simulated 6-second exception occurred!");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            // Catch the exception within the thread and log it
+            std::cout << "XXXXXXXXXX [Thread] CAUGHT EXCEPTION: " << e.what() << std::endl;
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     glfwInit();
@@ -174,5 +206,10 @@ int main(int argc, char **argv)
     else {
         std::cout << "Shader program create success!" << std::endl;
     }
+
+    std::thread worker(threadLogic);
+
+    worker.detach();
+
     emscripten_set_main_loop(renderFrame, 0, 0);
 }
